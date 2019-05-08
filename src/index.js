@@ -23,10 +23,7 @@ APP.toleranceButtons = new ButtonGroup({
     label: 'Tolerance',
     data: [0, .0001, .001],
     onlyOneHot: true,
-    callback: val => {
-      APP.tolerance = val;
-      updateMap();
-    }
+    callback: values => updateMap(),
 });
 
 
@@ -42,8 +39,8 @@ APP.activityTypeButtons = new ButtonGroup({
     label: 'Type',
     data: ['run', 'ride', 'walk', 'hike'],
     onlyOneHot: false,
-    callback: value => {
-        APP.table.updateFilter('type', row => value.includes(row.activity_type));
+    callback: values => {
+        APP.table.updateFilter('type', row => !values.length || values.includes(row.activity_type));
         APP.table.update();
     }
   });
@@ -54,8 +51,8 @@ APP.activityTypeButtons = new ButtonGroup({
     label: 'Year',
     data: [2015, 2016, 2017, 2018, 2019],
     onlyOneHot: false,
-    callback: value => {
-        APP.table.updateFilter('year', row => value.includes(row.date.getFullYear()));
+    callback: values => {
+        APP.table.updateFilter('year', row => !values.length || values.includes(row.date.getFullYear()));
         APP.table.update();
     }
   });
@@ -69,7 +66,7 @@ d3.json('http://localhost:5000/metadata/201', d => d)
     APP.table.data(APP.activities);
 
     // set initial values
-    APP.activityTypeButtons.setValue(['ride', 'run']);
+    APP.activityTypeButtons.setValue(['ride']);
     APP.activityDateButtons.setValue([2019]);
     APP.toleranceButtons.setValue(0);
 
@@ -98,7 +95,7 @@ APP.map.setView([37.86, -122.22], 12);
 function updateMap () {
   // row is a metadata object returned by api/metadata/
 
-  const tolerance = APP.toleranceButtons.value;
+  const tolerance = APP.toleranceButtons.values;
   d3.json(`http://localhost:5000/trajectory/${APP.selectedActivityId}?tolerance=${tolerance}`, d => d)
     .then(function(data) {
       APP.jsonLayer.remove();

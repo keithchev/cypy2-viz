@@ -16,7 +16,7 @@ class ButtonGroup {
                 data = data.map(value => ({label: value, value}));
             }
 
-            this.value = [];
+            this.values = [];
             this.data = data;
             this.callback = callback;
             this.className = className;
@@ -46,17 +46,17 @@ class ButtonGroup {
         onClick (value) {
 
             if (this.onlyOneHot) {
-                this.value = [value];
+                this.values = [value];
             } else {
-                if (this.value.includes(value)) {
-                    this.value = this.value.filter(d => d!==value);
+                if (this.values.includes(value)) {
+                    this.values = this.values.filter(d => d!==value);
                 } else {
-                    this.value.push(value);
+                    this.values.push(value);
                 }
             }
             d3.selectAll(`.${this.className}`)
-                .classed("button-group-button-active", d => this.value.includes(d.value));
-            this.callback(this.value);
+                .classed("button-group-button-active", d => this.values.includes(d.value));
+            this.callback(this.values);
         }
 
         setValue (val) {
