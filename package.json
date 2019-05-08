@@ -1,0 +1,42 @@
+{
+  "name": "activity-dashboard-v2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "webpack.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack-dev-server --config ./webpack.dev-config.js --mode development",
+    "build": "webpack --config ./webpack.prod-config.js --display-error-details -p"
+  },
+  "keywords": [],
+  "author": "Keith Cheveralls",
+  "license": "MIT",
+  "babel": {
+    "presets": [
+      "@babel/preset-env",
+      "@babel/preset-react"
+    ]
+  },
+  "devDependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.5",
+    "copy-webpack-plugin": "^5.0.0",
+    "css-loader": "^2.1.0",
+    "file-loader": "^3.0.1",
+    "html-webpack-plugin": "^3.2.0",
+    "mini-css-extract-plugin": "^0.5.0",
+    "tachyons": "^4.11.1",
+    "webpack": "^4.29.5",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.2.1"
+  },
+  "dependencies": {
+    "classnames": "^2.2.6",
+    "d3": "^5.9.2",
+    "leaflet": "^1.4.0",
+    "react": "^16.8.3",
+    "react-dom": "^16.8.3"
+  }
+}
