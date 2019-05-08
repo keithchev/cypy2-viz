@@ -37,22 +37,21 @@ class Slider {
                              .attr('type', "text")
                              .attr('class', "parameter-textbox");
 
-            var _this = this;
-            this.slider.on("input", function () {
-                _this.textbox.property("value", _this.sliderValToVal(_this.slider.node().value));
-                callback(_this.value()); 
+            this.slider.on("input", () => {
+                this.textbox.property("value", this.sliderValToVal(this.slider.node().value));
+                callback(this.value()); 
             });
 
-            this.textbox.on("input", function () {
-                _this.slider.property("value", _this.valToSliderVal(_this.textbox.node().value));
-                callback(_this.value());
+            this.textbox.on("input", () => {
+                this.slider.property("value", this.valToSliderVal(this.textbox.node().value));
+                callback(this.value());
             });
         }
 
         value (val) {
             if (!arguments.length) return +this.textbox.node().value;
-            this.slider.property("value", `${this.valToSliderVal(val)}`);
-            this.textbox.property("value", `${val}`);
+            this.slider.property("value", this.valToSliderVal(val));
+            this.textbox.property("value", val);
         }
     }
 
