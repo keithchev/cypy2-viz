@@ -26,6 +26,11 @@ span {
     height: 300px; 
 }
 
+#tolerance-button-container {
+	display: inline-block;
+	padding-right: 20px;
+}
+
 #lat-lon-container {
 	font-family: 'Roboto Mono', monospace;
 	font-size: 10px;

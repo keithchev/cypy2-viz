@@ -12,7 +12,7 @@ import ButtonGroup from './buttonGroup';
 
 
 // global state object (d3 included for debugging)
-let APP = {d3};
+let APP = {L, d3};
 
 //APP.toleranceSlider = new Slider('#tolerance-slider-container', 'Tolerance', [.0005, 0]);
 //APP.toleranceSlider.value(.0001);
@@ -40,8 +40,9 @@ APP.activityTypeButtons = new ButtonGroup({
     data: ['run', 'ride', 'walk', 'hike'],
     onlyOneHot: false,
     callback: values => {
-        APP.table.updateFilter('type', row => !values.length || values.includes(row.activity_type));
-        APP.table.update();
+        APP.table
+           .updateFilter('type', row => !values.length || values.includes(row.activity_type))
+           .update();
     }
   });
 
@@ -52,8 +53,9 @@ APP.activityTypeButtons = new ButtonGroup({
     data: [2015, 2016, 2017, 2018, 2019],
     onlyOneHot: false,
     callback: values => {
-        APP.table.updateFilter('year', row => !values.length || values.includes(row.date.getFullYear()));
-        APP.table.update();
+        APP.table
+           .updateFilter('year', row => !values.length || values.includes(row.date.getFullYear()))
+           .update();
     }
   });
 
@@ -73,23 +75,75 @@ d3.json('http://localhost:5000/metadata/201', d => d)
   });
 
 
+const lineOptions = {
+  color: 'red',
+  weight: 3,
+  opacity: .9,
+};
+
+const markerOptions = {
+  fillColor: "#1a80df",
+  color: "#fff",
+  stroke: true,
+  weight: 1.5,
+  radius: 5,
+};
+
 APP.map = L.map('map-container');
-APP.jsonLayer = L.geoJSON().addTo(APP.map);
+
+// OSM tiles
+L.tileLayer(
+  'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 18,
+  }).addTo(APP.map);
+
+// JSON layer and marker
+APP.trajectory = L.polyline([[0,0],[1,1]], lineOptions).addTo(APP.map);
+APP.marker = L.circleMarker([0, 0], markerOptions).addTo(APP.map);
+APP.map.attributionControl.setPrefix(''); 
+APP.map.setView([37.86, -122.22], 12);
 
 APP.map.on('mousemove', function (d) {
   d3.select("#lat-lon-container")
     .html(`${d.latlng.lat.toFixed(6)}, ${d.latlng.lng.toFixed(6)}`);
 });
 
+APP.map.on("click", function (d) {
+  d3.json(`http://localhost:5000/near/${d.latlng.lat}/${d.latlng.lng}`, d => d)
+    .then(data => {
+      APP.table
+         .merge(data, 'activity_id')
+         .sortParams({key: 'proximity', order: -1})
+         .update()
+         .sort();
+    });
+  APP.marker.setLatLng(d.latlng);
+});
 
-L.tileLayer(
-  'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-  maxZoom: 18,
-}).addTo(APP.map);
 
-APP.map.attributionControl.setPrefix(''); 
-APP.map.setView([37.86, -122.22], 12);
+d3.select("#map-controls-container")
+  .append("div")
+  .attr("class", "button-group-button")
+  .attr("id", "proximity-search-button")
+  .text("Proximity search")
+  .on("click", function (d) {
+    const isActive = d3.select(this).classed("button-group-button-active");
+    d3.select(this).classed("button-group-button-active", !isActive);
+    APP.proximitySearch = !isActive;
+
+    // if we're activating the search
+    if (APP.proximitySearch) {
+      APP.d3.select(APP.map._container).style("cursor", "crosshair");
+      APP.marker.setStyle({opacity: 1, fillOpacity: 1});
+    }
+    // reset the filter if we're deactivating the search
+    if (!APP.proximitySearch) {
+      APP.d3.select(APP.map._container).style("cursor", "");
+      APP.table.updateFilter('proximity', d => true).update();
+      APP.marker.setLatLng([0, 0]).setStyle({opacity: 0, fillOpacity: 0});
+    }
+  });
 
 
 function updateMap () {
@@ -98,9 +152,8 @@ function updateMap () {
   const tolerance = APP.toleranceButtons.values;
   d3.json(`http://localhost:5000/trajectory/${APP.selectedActivityId}?tolerance=${tolerance}`, d => d)
     .then(function(data) {
-      APP.jsonLayer.remove();
-      APP.jsonLayer = L.geoJSON().addData(data).addTo(APP.map);
-      APP.map.fitBounds(APP.jsonLayer.getBounds());
+      APP.trajectory.setLatLngs(data.coordinates.map(row => [row[1], row[0]]));
+      APP.map.fitBounds(APP.trajectory.getBounds());
     });
 }
 
