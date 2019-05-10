@@ -60,26 +60,34 @@ span {
 	font-size: 12px;
 }
 
+.line-plot-clippable-path {
+	clip-path: url(#line-plot-clip-path);
+}
+
 .line-plot-data-path {
 	stroke-width: 1;
-	fill: none;
 }
 
 .line-plot-mean-path {
-	stroke: #333;
+	stroke: #aaa;
 	stroke-width: 1;
 	fill: none;
 	stroke-dasharray: 3,3;
+	shape-rendering: crispEdges;
 }
 
 .line-plot-mouse-path {
 	fill: none;
-	stroke: #777;
+	stroke: #666;
 	stroke-width: 1;
 	shape-rendering: crispEdges;
 }
 
-
+.line-plot-brush.extent {
+	stroke: #fff;
+	fill-opacity: .125;
+	shape-rendering: crispEdges;
+}
 
 
 

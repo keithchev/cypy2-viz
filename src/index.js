@@ -162,14 +162,26 @@ d3.select("#plot-container")
 
 APP.linePlots = d3.selectAll(".line-plot-container");
 APP.linePlots.each(linePlot => {
+
+  // update the mouse marker on the map and the mouse line in all line plots
   linePlot.onMouseMoveCallback(mouseIndex => {
     const [lat, lon] = [APP.records.lat[mouseIndex], APP.records.lon[mouseIndex]];
     APP.mouseMarker.setLatLng([lat, lon]);
     APP.linePlots.each(linePlot => {
       linePlot.updateMousePosition(mouseIndex);
     });
-  })
+  });
+
+  // update the x-domain in all line plots except the altitude plot
+  linePlot.onBrushCallback(xDomain => {
+    APP.linePlots.each(linePlot => {
+      if (linePlot.definition().key==='altitude') return;
+      linePlot.xDomain(xDomain).update();
+    });
+  });
+
 });
+
 
 function updateMap () {
 
@@ -188,7 +200,7 @@ function updateMap () {
           x: records.elapsed_time, 
           y: records[linePlot.definition().key]
         });
-        linePlot.update();
+        linePlot.xDomain(null).update();
       });
     });
 }
