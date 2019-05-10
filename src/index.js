@@ -85,6 +85,7 @@ const lineOptions = {
 
 const markerOptions = {
   fillColor: "#1a80df",
+  fillOpacity: 1,
   color: "#fff",
   stroke: true,
   weight: 1.5,
@@ -102,7 +103,9 @@ L.tileLayer(
 
 // JSON layer and marker
 APP.trajectory = L.polyline([[0,0],[1,1]], lineOptions).addTo(APP.map);
-APP.marker = L.circleMarker([0, 0], markerOptions).addTo(APP.map);
+APP.mouseMarker = L.circleMarker([0, 0], markerOptions).addTo(APP.map);
+APP.proximityMarker = L.circleMarker([0, 0], markerOptions).addTo(APP.map);
+
 APP.map.attributionControl.setPrefix(''); 
 APP.map.setView([37.86, -122.22], 12);
 
@@ -120,7 +123,7 @@ APP.map.on("click", function (d) {
          .update()
          .sort();
     });
-  APP.marker.setLatLng(d.latlng);
+  APP.proximityMarker.setLatLng(d.latlng);
 });
 
 
@@ -137,13 +140,13 @@ d3.select("#map-controls-container")
     // if we're activating the search
     if (APP.proximitySearch) {
       APP.d3.select(APP.map._container).style("cursor", "crosshair");
-      APP.marker.setStyle({opacity: 1, fillOpacity: 1});
+      APP.proximityMarker.setStyle({opacity: 1, fillOpacity: 1});
     }
     // reset the filter if we're deactivating the search
     if (!APP.proximitySearch) {
       APP.d3.select(APP.map._container).style("cursor", "");
       APP.table.updateFilter('proximity', d => true).update();
-      APP.marker.setLatLng([0, 0]).setStyle({opacity: 0, fillOpacity: 0});
+      APP.proximityMarker.setStyle({opacity: 0, fillOpacity: 0});
     }
   });
 
@@ -158,7 +161,15 @@ d3.select("#plot-container")
   .attr("class", "line-plot-container");
 
 APP.linePlots = d3.selectAll(".line-plot-container");
-
+APP.linePlots.each(linePlot => {
+  linePlot.onMouseMoveCallback(mouseIndex => {
+    const [lat, lon] = [APP.records.lat[mouseIndex], APP.records.lon[mouseIndex]];
+    APP.mouseMarker.setLatLng([lat, lon]);
+    APP.linePlots.each(linePlot => {
+      linePlot.updateMousePosition(mouseIndex);
+    });
+  })
+});
 
 function updateMap () {
 
@@ -171,8 +182,9 @@ function updateMap () {
 
   d3.json(`http://localhost:5000/records/${APP.selectedActivityId}?sampling=10`, d => d)
     .then(function (records) {
+      APP.records = records;
       APP.linePlots.each(linePlot => {
-        linePlot.data({
+        linePlot.lineData({
           x: records.elapsed_time, 
           y: records[linePlot.definition().key]
         });

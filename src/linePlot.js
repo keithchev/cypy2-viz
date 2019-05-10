@@ -17,8 +17,10 @@ function makeLinePlot (container, definition) {
         padB: 10,
     }
 
-    // the array of activity metadata
-    let data = [];
+    let xDomain, yDomain, lineData;
+
+    // external callback to execute when mouse moves
+    let onMouseMoveCallback = (mouseIndex) => {};
 
     const svg = container.append("svg");
     const width = parseInt(container.style('width'));
@@ -44,10 +46,16 @@ function makeLinePlot (container, definition) {
 
     // plot label
     svg.append("text")
+       .attr("class", "line-plot-label")
        .attr("transform", "translate(0, 15)")
        .attr("text-anchor", "start")
-       .attr("style", "font-size: 12px; font-weight: bold;")
        .text(definition.label);
+
+    svg.append("text")
+       .attr('class', 'line-plot-value')
+       .attr("transform", `translate(${width}, 15)`)
+       .attr("text-anchor", "end");
+       
 
     // group for plot paths and axes
     const g = svg.append("g");
@@ -58,55 +66,62 @@ function makeLinePlot (container, definition) {
 
     // primary line plot path
     g.append("path")
-     .attr("class", "line-plot-path")
+     .attr("class", "line-plot-data-path")
      .attr("id", "data-path")
-     .attr("stroke", definition.color)
-     .attr("stroke-width", 1)
-     .attr("fill", "none");
+     .attr("stroke", definition.color);
 
     // mean plot path
     g.append("path")
-     .attr("class", "line-plot-path")
-     .attr("id", "mean-path")
-     .attr("stroke", "#000")
-     .style("stroke-dasharray", "3,3")
-     .attr("stroke-width", 1)
-     .attr("fill", "none");
+     .attr("class", "line-plot-mean-path")
+     .attr("id", "mean-path");
 
-    g.append("path").attr("class", "mouse-position-path");
-
+    g.append("path")
+     .attr("class", "line-plot-mouse-path");
+    
+     // bind event listeners 
+     // (use 'mouseleave' instead of 'mouseout' to prevent bubbling up/down)
+    svg.on("mousemove", onMouseMove);
+    svg.on("mouseleave", onMouseOut);
 
 
     function LinePlot () {}
 
     LinePlot.definition = () => definition;
 
-    LinePlot.data = function ({x, y}) {
-        if (!arguments.length) return data;
+    LinePlot.lineData = function ({x, y}) {
+        if (!arguments.length) return lineData;
         if (y===undefined) {
-            data = [
-                {x: 0, y: 0}, 
-                {x: x[x.length-1], y: 0}
-            ];
+            lineData = undefined;
         } else {
-            data = x.map((val, ind) => ({x: val, y: y[ind]}));
+            lineData = x.map((val, ind) => ({x: val, y: y[ind]}));
         }
+        return LinePlot;
+    }
+
+    LinePlot.onMouseMoveCallback = function (fn) {
+        if (!arguments.length) return onMouseMoveCallback;
+        onMouseMoveCallback = fn;
         return LinePlot;
     }
 
 
     LinePlot.update = function () {
+        if (lineData===undefined) {
+            svg.select("#data-path").attr("d", d => null);
+            svg.select("#mean-path").attr("d", d => null);   
+            return LinePlot;             
+        }
 
-        let xDomain = [data[0].x, data[data.length - 1].x];
-        let yDomain = [d3.min(data, d => d.y), d3.max(data, d => d.y)];
+        xDomain = [lineData[0].x, lineData[lineData.length - 1].x];
+        yDomain = [d3.min(lineData, d => d.y), d3.max(lineData, d => d.y)];
         yDomain = definition.range==='auto' ? yDomain : definition.range;
 
         xScale.domain(xDomain);
         yScale.domain(yDomain);
 
         // mean value
-        const meanValue = d3.mean(data, d => d.y);
-        const meanData = [
+        const meanValue = d3.mean(lineData, d => d.y);
+        const meanLineData = [
             {x: xDomain[0], y: meanValue},
             {x: xDomain[1], y: meanValue}
         ];
@@ -116,10 +131,40 @@ function makeLinePlot (container, definition) {
              .tickSize(0, 0);
 
         svg.select("#y-axis").call(yAxis);
-        svg.select("#data-path").attr("d", d => line(data));
-        svg.select("#mean-path").attr("d", d => line(meanData));
+        svg.select("#data-path").attr("d", d => line(lineData));
+        svg.select("#mean-path").attr("d", d => line(meanLineData));
     
         return LinePlot;
+    }
+
+
+    LinePlot.updateMousePosition = function (mouseIndex) {
+        if (lineData===undefined) return;
+
+        const mouseLineData = [
+            {x: lineData[mouseIndex].x, y: yDomain[0]},
+            {x: lineData[mouseIndex].x, y: yDomain[1]}];
+
+        svg.select(".line-plot-mouse-path")
+           .attr("d", line(mouseLineData))
+           .attr("visibility", "visible");
+
+        svg.select(".line-plot-value")
+           .text(`${definition.tickFormat(lineData[mouseIndex].y)} ${definition.units}`);
+
+    }
+
+
+    function onMouseMove () {
+        if (lineData===undefined) return;
+        const mousePosition = d3.mouse(svg.node())[0] - props.padL;
+        const dists = lineData.map(d => Math.abs(d.x - xScale.invert(mousePosition)));
+        const mouseIndex = dists.indexOf(Math.min.apply(null, dists));
+        onMouseMoveCallback(mouseIndex);
+    }
+
+    function onMouseOut () {
+        d3.selectAll('.line-plot-mouse-path').attr('visibility', 'hidden');
     }
 
     return LinePlot;

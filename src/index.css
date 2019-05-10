@@ -47,9 +47,40 @@ span {
 }
 
 #plot-container {
-	padding-bottom: 30px;
 	width: 600px;
+	padding-top: 15px;
+	padding-bottom: 30px;
 }
+
+.line-plot-label {
+	font-weight: bold;
+}
+
+.line-plot-value {
+	font-size: 12px;
+}
+
+.line-plot-data-path {
+	stroke-width: 1;
+	fill: none;
+}
+
+.line-plot-mean-path {
+	stroke: #333;
+	stroke-width: 1;
+	fill: none;
+	stroke-dasharray: 3,3;
+}
+
+.line-plot-mouse-path {
+	fill: none;
+	stroke: #777;
+	stroke-width: 1;
+	shape-rendering: crispEdges;
+}
+
+
+
 
 
 .button-group-container {
