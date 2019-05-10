@@ -19,19 +19,24 @@ function makeLinePlot (container, definition) {
 
     // the array of activity metadata
     let data = [];
-    let xScale, yScale; 
 
-    const width = parseInt(container.style('width'));
     const svg = container.append("svg");
+    const width = parseInt(container.style('width'));
+
+    const xScale = d3.scaleLinear().range([0, width - props.padL - props.padR]);
+    const yScale = d3.scaleLinear().range([props.height - props.padT - props.padB, 0]);
+
+    const line = d3.line().x(d => xScale(d.x)).y(d => yScale(d.y));
+    const yAxis = d3.axisLeft(yScale);    
 
     // SVG itself
-    svg.attr("height", props.height)
-       .attr("width", width)
-       .attr("class", "")
+    svg.attr("width", width)
+       .attr("height", props.height)
        .attr("id", definition.key);
 
     // clip path for brushing
-    svg.append("defs").append("clipPath")
+    svg.append("defs")
+       .append("clipPath")
        .attr("id", "clip")
        .append("rect")
        .attr("width", width - props.padL - props.padR)
@@ -70,8 +75,6 @@ function makeLinePlot (container, definition) {
 
     g.append("path").attr("class", "mouse-position-path");
 
-    xScale = d3.scaleLinear().range([0, width - props.padL - props.padR]);
-    yScale = d3.scaleLinear().range([props.height - props.padT - props.padB, 0]);
 
 
     function LinePlot () {}
@@ -87,8 +90,6 @@ function makeLinePlot (container, definition) {
 
     LinePlot.update = function () {
 
-        const line = d3.line().x(d => xScale(d.x)).y(d => yScale(d.y));
-
         let xDomain = [data[0].x, data[data.length - 1].x];
         let yDomain = [d3.min(data, d => d.y), d3.max(data, d => d.y)];
         yDomain = definition.range==='auto' ? yDomain : definition.range;
@@ -103,15 +104,11 @@ function makeLinePlot (container, definition) {
             {x: xDomain[1], y: meanValue}
         ];
 
-        const yAxis = d3.axisLeft(yScale);
-        const xAxis = d3.axisBottom(xScale);
-    
         yAxis.tickValues(yScale.domain().concat(meanValue))
              .tickFormat(definition.tickFormat)
              .tickSize(0, 0);
-    
+
         svg.select("#y-axis").call(yAxis);
-        
         svg.select("#data-path").attr("d", d => line(data));
         svg.select("#mean-path").attr("d", d => line(meanData));
     
