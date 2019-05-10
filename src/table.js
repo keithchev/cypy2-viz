@@ -54,7 +54,7 @@ const columnDefs = [
 ];
 
 
-function MakeTable (container) {
+function makeTable (container) {
 
     container.select("table").remove();
 
@@ -185,4 +185,4 @@ function MakeTable (container) {
 }
 
 
-export default MakeTable;
+export default makeTable;

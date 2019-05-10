@@ -36,6 +36,12 @@ span {
 	font-size: 10px;
 }
 
+#plot-container {
+	padding-bottom: 30px;
+	width: 600px;
+}
+
+
 .button-group-container {
 	padding-bottom: 10px;
 }

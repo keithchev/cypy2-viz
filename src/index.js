@@ -7,9 +7,11 @@ import './index.css';
 import 'leaflet/dist/leaflet.css';
 
 import Slider from './slider';
-import MakeTable from './table';
+import makeTable from './table';
+import makeLinePlot from './linePlot'
 import ButtonGroup from './buttonGroup';
 
+import settings from './settings'
 
 // global state object (d3 included for debugging)
 let APP = {L, d3};
@@ -27,7 +29,7 @@ APP.toleranceButtons = new ButtonGroup({
 });
 
 
-APP.table = MakeTable(d3.select("#table-container"));
+APP.table = makeTable(d3.select("#table-container"));
 APP.table.onRowClick((row) => {
   APP.selectedActivityId = row.activity_id;
   updateMap();
@@ -146,8 +148,19 @@ d3.select("#map-controls-container")
   });
 
 
+d3.select("#plot-container")
+  .selectAll("div")
+  .data(settings.linePlotDefinitions)
+  .enter().append("div")
+  .selectAll("div")
+  .data(function (definition) { return [makeLinePlot(this, definition)] })
+  .enter().append("div")
+  .attr("class", "line-plot-container");
+
+APP.linePlots = d3.selectAll(".line-plot-container");
+
+
 function updateMap () {
-  // row is a metadata object returned by api/metadata/
 
   const tolerance = APP.toleranceButtons.values;
   d3.json(`http://localhost:5000/trajectory/${APP.selectedActivityId}?tolerance=${tolerance}`, d => d)
@@ -155,7 +168,21 @@ function updateMap () {
       APP.trajectory.setLatLngs(data.coordinates.map(row => [row[1], row[0]]));
       APP.map.fitBounds(APP.trajectory.getBounds());
     });
+
+  d3.json(`http://localhost:5000/records/${APP.selectedActivityId}?sampling=10`, d => d)
+    .then(function (records) {
+      APP.linePlots.each(linePlot => {
+        const data = {
+          x: records.elapsed_time, 
+          y: records[linePlot.definition().key]
+        };
+        linePlot.data(data).update();
+      });
+    });
 }
+
+
+
 
 
 function parseActivityMetadata (metadata) {
