@@ -83,7 +83,14 @@ function makeLinePlot (container, definition) {
 
     LinePlot.data = function ({x, y}) {
         if (!arguments.length) return data;
-        data = x.map((val, ind) => ({x: val, y: y[ind]}));
+        if (y===undefined) {
+            data = [
+                {x: 0, y: 0}, 
+                {x: x[x.length-1], y: 0}
+            ];
+        } else {
+            data = x.map((val, ind) => ({x: val, y: y[ind]}));
+        }
         return LinePlot;
     }
 

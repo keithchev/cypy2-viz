@@ -172,11 +172,11 @@ function updateMap () {
   d3.json(`http://localhost:5000/records/${APP.selectedActivityId}?sampling=10`, d => d)
     .then(function (records) {
       APP.linePlots.each(linePlot => {
-        const data = {
+        linePlot.data({
           x: records.elapsed_time, 
           y: records[linePlot.definition().key]
-        };
-        linePlot.data(data).update();
+        });
+        linePlot.update();
       });
     });
 }
