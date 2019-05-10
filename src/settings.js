@@ -41,7 +41,7 @@ const linePlotDefinitions = [
         color: '#666',
         label: 'VAM',
         units: 'm/h',
-        range: [0, 3000],
+        range: [0, 2000],
         tickFormat: d => d.toFixed(0),
     },
 ];

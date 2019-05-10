@@ -72,7 +72,7 @@ d3.json('http://localhost:5000/metadata/201', d => d)
     // set initial values
     APP.activityTypeButtons.setValue(['ride']);
     APP.activityDateButtons.setValue([2019]);
-    APP.toleranceButtons.setValue(0);
+    APP.toleranceButtons.setValue(.0001);
 
   });
 

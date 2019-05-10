@@ -55,11 +55,12 @@ class ButtonGroup {
                 }
             }
             d3.selectAll(`.${this.className}`)
-                .classed("button-group-button-active", d => this.values.includes(d.value));
+              .classed("button-group-button-active", d => this.values.includes(d.value));
             this.callback(this.values);
         }
 
         setValue (val) {
+            // TODO: verify that val is one of the values specified in this.data
             if (!Array.isArray(val)) val = [val];
             val.forEach(d => this.onClick(d));
         }
