@@ -11,7 +11,8 @@ import makeTable from './table';
 import makeLinePlot from './linePlot'
 import ButtonGroup from './buttonGroup';
 
-import settings from './settings'
+import settings from './settings';
+import utils from './utils';
 
 // global state object (d3 included for debugging)
 let APP = {L, d3};

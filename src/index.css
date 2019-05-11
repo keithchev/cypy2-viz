@@ -69,9 +69,8 @@ span {
 }
 
 .line-plot-mean-path {
-	stroke: #aaa;
-	stroke-width: 1;
 	fill: none;
+	stroke-width: 1;
 	stroke-dasharray: 3,3;
 	shape-rendering: crispEdges;
 }

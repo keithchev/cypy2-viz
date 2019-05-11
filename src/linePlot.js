@@ -2,6 +2,7 @@
 import 'tachyons';
 import * as d3 from 'd3';
 
+import utils from './utils';
 
 
 function makeLinePlot (container, definition) {
@@ -75,7 +76,8 @@ function makeLinePlot (container, definition) {
     // mean plot path
     g.append("path")
      .attr("class", "line-plot-clippable-path line-plot-mean-path")
-     .attr("id", "mean-path");
+     .attr("id", "mean-path")
+     .attr("stroke", utils.lightenColor(definition.color, .7) || "none");
 
      // mouse position
     g.append("path")
@@ -155,6 +157,8 @@ function makeLinePlot (container, definition) {
         xScale.domain(xDomain);
         yScale.domain(yDomain);
 
+        // make sure the fill looks right
+        // (in practice, this is only for the altitude plot)
         if (definition.fillColor) {
             lineData = [{x: xDomain[0], y: yMin}, ...lineData, {x: xDomain[1], y: yMin}];
         }
