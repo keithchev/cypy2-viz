@@ -61,9 +61,16 @@ function makeTable (container) {
     const table = container.append("table");
     const thead = table.append("thead");
     const tbody = table.append("tbody");
+    const footer = container.append("div").attr("id", "table-footer-container");
+
+    // hard-coded page size (rows per page)
+    const pageSize = 20;
 
     // the array of activity metadata
-    let data = [];
+    let data, selectedData;
+
+    // the current page and number of pages
+    let page = 0, numPages;
 
     // table sort order and initial sort-by column
     let sortParams = {key: 'date', order: 1};
@@ -74,8 +81,8 @@ function makeTable (container) {
     // dict of filter functions to select a subset of metadata
     let filters = {};
 
+    // create the column headers
     const th = thead.selectAll('th').data(columnDefs, d => d.key);
-
     th.exit().remove();
     th.enter().append('th')
       .attr('class', 'table-th')
@@ -84,20 +91,53 @@ function makeTable (container) {
       .on('click', columnDef => {
           sortParams.key = columnDef.key;
           sortParams.order = -sortParams.order;
-          Table.sort();
+          Table.update();
       });
+
+    // create the footer (page buttons)
+    footer.append("div")
+          .attr("class", "fl w-25 table-page-button")
+          .attr("id", "table-back-button")
+          .text("<<")
+          .on("click", () => {
+              if (page===0) return;
+              page -= 1;
+              Table.update();
+          });
+
+    footer.append('div')
+          .attr("class", "fl w-50")
+          .attr("id", "table-current-page");
+
+    footer.append("div")
+          .attr("class", "fl w-25 table-page-button")
+          .attr("id", "table-forward-button")
+          .text(">>")
+          .on("click", () => {
+              if (page===(numPages - 1)) return;
+              page += 1;
+              Table.update();
+          });
 
 
     function Table () {}
 
     Table.data = function (val) {
         if (!arguments.length) return data;
+        page = 0;
         data = val;
+        return Table;
+    }
+
+    Table.page = function (val) {
+        if (!arguments.length) return page;
+        page = val;
         return Table;
     }
 
     Table.sortParams = function (newParams) {
         if (!arguments.length) return sortParams;
+        page = 0;
         sortParams = {...sortParams, ...newParams};
         return Table;
     }
@@ -108,6 +148,7 @@ function makeTable (container) {
     }
 
     Table.updateFilter = function (name, fn) {
+        page = 0;
         filters[name] = fn;
         return Table;
     }
@@ -120,7 +161,7 @@ function makeTable (container) {
     }
 
     Table.sort = function () {
-        d3.selectAll('.table-tr').sort((row1, row2) => {
+        selectedData.sort((row1, row2) => {
             const [val1, val2] = [row1[sortParams.key], row2[sortParams.key]]; 
             if (val1===null || val1===undefined) return -sortParams.order;
             if (val2===null || val2===undefined) return sortParams.order;
@@ -135,12 +176,17 @@ function makeTable (container) {
     Table.update = function () {
 
         // apply all of the filters
-        let selectedData = [...data];
+        selectedData = [...data];
         Object.values(filters).map(filter => {
             selectedData = selectedData.filter(filter);
         });
 
-        let tr = tbody.selectAll('tr').data(selectedData, d => d.activity_id);
+        Table.sort();
+
+        numPages = Math.ceil(selectedData.length / pageSize);
+        const displayedData = selectedData.slice(page*pageSize, (page + 1)*pageSize);
+
+        let tr = tbody.selectAll('tr').data(displayedData, d => d.activity_id);
         tr.exit().remove();
 
         tr = tr.enter().append('tr')
@@ -176,7 +222,7 @@ function makeTable (container) {
             return color;
           });
 
-        Table.sort();
+        d3.select("#table-current-page").text(`Page ${page + 1}/${numPages}`);
         
         return Table;
     }

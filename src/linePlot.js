@@ -184,7 +184,6 @@ function makeLinePlot (container, definition) {
         return LinePlot;
     }
 
-
     LinePlot.updateMousePosition = function (mouseIndex) {
         if (lineData===undefined) return;
 

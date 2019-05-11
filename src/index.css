@@ -120,8 +120,26 @@ span {
 	border-bottom: 1px solid #333;
 }
 
+#table-container {
+	/* here, the absolute height and relative position are needed 
+	to keep #table-foot-container from moving when the height of the table changes */
+	height: 380px;
+	position: relative;
+	padding-right: 20px;
+}
+
+#table-footer-container {
+	/* here, position: absolute and bottom: 0 are required to float this div
+	to the bottom of the #table-container */
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	/* this padding should match #table-container's padding */
+	padding-right: 20px; 
+}
 
 table {
+	width: 100%;
 	font-family: 'Roboto Mono', monospace;
 	font-size: 10px;
 	border-spacing: 0px;
@@ -149,4 +167,19 @@ table {
 .table-td {
 	padding-left: 5px;
 	padding-right: 5px;
+}
+
+.table-page-button {
+	cursor: pointer;
+	text-align: center;
+	font-weight: bold;
+}
+
+.table-page-button:hover {
+	background-color: #eee;
+}
+
+#table-current-page {
+	text-align: center;
+	font-size: 12px;
 }

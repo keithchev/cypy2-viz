@@ -121,8 +121,7 @@ APP.map.on("click", function (d) {
       APP.table
          .merge(data, 'activity_id')
          .sortParams({key: 'proximity', order: -1})
-         .update()
-         .sort();
+         .update();
     });
   APP.proximityMarker.setLatLng(d.latlng);
 });
