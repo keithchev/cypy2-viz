@@ -67,7 +67,7 @@ function makeTable (container) {
     const pageSize = 20;
 
     // the array of activity metadata
-    let data, selectedData;
+    let data = [];
 
     // the current page and number of pages
     let page = 0, numPages;
@@ -75,8 +75,9 @@ function makeTable (container) {
     // table sort order and initial sort-by column
     let sortParams = {key: 'date', order: 1};
 
-    // callback when a row is clicked
+    // callbacks
     let onRowClick = () => undefined;
+    let onUpdate = () => undefined;
 
     // dict of filter functions to select a subset of metadata
     let filters = {};
@@ -167,7 +168,15 @@ function makeTable (container) {
         return Table;
     }
 
-    Table.sort = function () {
+
+    Table.update = function () {
+
+        // apply all of the filters
+        let selectedData = [...data];
+        Object.values(filters).map(filter => {
+            selectedData = selectedData.filter(filter);
+        });
+
         selectedData.sort((row1, row2) => {
             const [val1, val2] = [row1[sortParams.key], row2[sortParams.key]]; 
             if (val1===null || val1===undefined) return -sortParams.order;
@@ -178,22 +187,11 @@ function makeTable (container) {
                 return -sortParams.order;
             }
         });
-    }
-
-    Table.update = function () {
-
-        // apply all of the filters
-        selectedData = [...data];
-        Object.values(filters).map(filter => {
-            selectedData = selectedData.filter(filter);
-        });
-
-        Table.sort();
 
         numPages = Math.ceil(selectedData.length / pageSize);
         const displayedData = selectedData.slice(page*pageSize, (page + 1)*pageSize);
 
-        let tr = tbody.selectAll('tr').data(displayedData, d => d.activity_id);
+        let tr = tbody.selectAll('tr').data(displayedData);
         tr.exit().remove();
 
         tr = tr.enter().append('tr')
