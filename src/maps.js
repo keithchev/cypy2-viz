@@ -20,7 +20,7 @@ const lineOptions = {
   };
 
 
-class Map {
+class TrajectoryMap {
 
     constructor({container, onClick}) {
 
@@ -95,7 +95,7 @@ class Map {
               this.trajectories = L.geoJSON(data).addTo(this.map);
               this.trajectories.setStyle(d => ({color: '#666', opacity: .7}))
               this.map.fitBounds(this.trajectories.getBounds());
-              this.trajectory.bringToFront();
+              this.trajectories.bringToBack();
           })
 
     }
@@ -111,4 +111,4 @@ class Map {
 }
 
 
-export default Map;
+export default TrajectoryMap;

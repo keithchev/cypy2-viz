@@ -6,9 +6,9 @@ import * as d3 from 'd3';
 import './index.css';
 import 'leaflet/dist/leaflet.css';
 
-import Map from './map';
 import Slider from './slider';
 import makeTable from './table';
+import TrajectoryMap from './maps';
 import makeLinePlot from './linePlot'
 import ButtonGroup from './buttonGroup';
 
@@ -25,11 +25,7 @@ let APP = {L, d3};
 //
 // ------------------------------------------------------------------
 APP.table = makeTable(d3.select("#table-container"));
-
-APP.table.onRowClick((row) => {
-  APP.selectedActivityId = row.activity_id;
-  changeSelectedActivity();
-});
+APP.table.onRowClick(row => changeSelectedActivity(row.activity_id));
 
 // whenever the table changes (on filtering, paging, sorting, proximity searching, etc)
 APP.table.onUpdate(displayedData => {
@@ -64,34 +60,18 @@ APP.activityDateButtons = new ButtonGroup({
   onlyOneHot: false,
   callback: values => {
       APP.table
-          .updateFilter('year', row => !values.length || values.includes(row.date.getFullYear()))
-          .update();
+         .updateFilter('year', row => !values.length || values.includes(row.date.getFullYear()))
+         .update();
   }
 });
 
 
 // ------------------------------------------------------------------
 //
-// App initialization
+// Map 
 //
 // ------------------------------------------------------------------
-d3.json(settings.api.url({endpoint: '/metadata/201'}))
-  .then(activities => {
-
-    // set tolerance first so map loads correctly
-    APP.toleranceButtons.setValue(.0001);
-
-    APP.activities = activities;
-    APP.activities.forEach(parseActivityMetadata);
-    APP.table.data(APP.activities);
-
-    APP.activityTypeButtons.setValue(['ride']);
-    APP.activityDateButtons.setValue([2019]);
-
-});
-
-
-APP.map = new Map({
+APP.map = new TrajectoryMap({
   container: 'map-container',
   onClick: function (lat, lon) {
     d3.json(settings.api.url({endpoint: `/near/${lat}/${lon}`}))
@@ -102,7 +82,6 @@ APP.map = new Map({
       });
     }
 });
-
 
 
 // ------------------------------------------------------------------
@@ -171,6 +150,7 @@ APP.linePlots.each(linePlot => {
   });
 
   // update the x-domain in all line plots except the altitude plot
+  // TODO: only define onBrushCallback for the altitude lineplot
   linePlot.onBrushCallback(xDomain => {
     APP.linePlots.each(linePlot => {
       if (linePlot.definition().key==='altitude') return;
@@ -181,17 +161,41 @@ APP.linePlots.each(linePlot => {
 });
 
 
-function changeSelectedActivity () {
+// ------------------------------------------------------------------
+//
+// App initialization
+//
+// ------------------------------------------------------------------
+d3.json(settings.api.url({endpoint: '/metadata/20'}))
+  .then(activities => {
+
+    // set tolerance first so map loads correctly
+    APP.toleranceButtons.setValue(.0001);
+
+    APP.activities = activities;
+    APP.activities.forEach(parseActivityMetadata);
+    APP.table.data(APP.activities);
+
+    APP.activityTypeButtons.setValue(['ride']);
+    APP.activityDateButtons.setValue([2019]);
+
+});
+
+
+function changeSelectedActivity (activityId) {
+
+  // update the global state
+  APP.selectedActivityId = activityId;
 
   // update the map
   APP.map.updateTrajectory(APP.selectedActivityId, APP.toleranceButtons.values);
 
+  // update the lineplots
   const url = settings.api.url({
     endpoint: `/records/${APP.selectedActivityId}`,
     sampling: 10
   });
 
-  // update the lineplots
   d3.json(url)
     .then(function (records) {
       APP.records = records;
@@ -207,13 +211,10 @@ function changeSelectedActivity () {
 
 
 
-
-
 function parseActivityMetadata (metadata) {
 
   // all of the timestamps should be (nearly) the same
   metadata.date = d3.isoParse(metadata.strava_timestamp);
-
   metadata.total_ascent *= 3.2808; // meters to feet
   metadata.total_distance *= 0.000621371; // meters to miles
 
