@@ -75,7 +75,7 @@ APP.activityDateButtons = new ButtonGroup({
 // App initialization
 //
 // ------------------------------------------------------------------
-d3.json('http://localhost:5000/metadata/201', d => d)
+d3.json(settings.api.url({endpoint: '/metadata/201'}))
   .then(activities => {
 
     // set tolerance first so map loads correctly
@@ -94,7 +94,7 @@ d3.json('http://localhost:5000/metadata/201', d => d)
 APP.map = new Map({
   container: 'map-container',
   onClick: function (lat, lon) {
-    d3.json(`http://localhost:5000/near/${lat}/${lon}`, d => d)
+    d3.json(settings.api.url({endpoint: `/near/${lat}/${lon}`}))
       .then(data => {
         APP.table.merge(data, 'activity_id')
                  .sortParams({key: 'proximity', order: -1})
@@ -186,8 +186,13 @@ function changeSelectedActivity () {
   // update the map
   APP.map.updateTrajectory(APP.selectedActivityId, APP.toleranceButtons.values);
 
+  const url = settings.api.url({
+    endpoint: `/records/${APP.selectedActivityId}`,
+    sampling: 10
+  });
+
   // update the lineplots
-  d3.json(`http://localhost:5000/records/${APP.selectedActivityId}?sampling=10`, d => d)
+  d3.json(url)
     .then(function (records) {
       APP.records = records;
       APP.linePlots.each(linePlot => {

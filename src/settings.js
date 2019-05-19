@@ -1,5 +1,20 @@
 
 
+function constructUrl({endpoint, ...kwargs}) {
+
+    const root = 'http://localhost:5000';
+    const args = Object.entries(kwargs).map(([key, value]) => `${key}=${value}`);
+    const url = `${root}${endpoint}?${args.join('&')}`;
+    return url;
+}
+
+
+const api = {
+    url: constructUrl,
+};
+
+
+
 function toFixed(val, n) {
     if ((typeof val)!=='number') return 'NaN';
     return val.toFixed(n);
@@ -56,4 +71,4 @@ const linePlotDefinitions = [
 ];
 
 
-export default {linePlotDefinitions};
+export default {api, linePlotDefinitions};

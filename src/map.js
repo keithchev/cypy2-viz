@@ -1,6 +1,8 @@
 import L from 'leaflet';
 import * as d3 from 'd3';
 
+import settings from './settings';
+
 
 const lineOptions = {
     color: 'red',
@@ -60,8 +62,12 @@ class Map {
 
     updateTrajectory (activityId, tolerance) {
 
-        d3.json(`http://localhost:5000/trajectory/${activityId}?tolerance=${tolerance}`, d => d)
-        .then(data => {
+        const url = settings.api.url({
+            endpoint: `/trajectory/${activityId}`,
+            tolerance: tolerance,
+        });
+
+        d3.json(url).then(data => {
           this.trajectory.setLatLngs(data.coordinates.map(row => [row[1], row[0]]));
           this.map.fitBounds(this.trajectory.getBounds());
         });
@@ -77,9 +83,14 @@ class Map {
 
         if (!activityIds.length) return;
 
+        const url = settings.api.url({
+            endpoint: '/trajectories',
+            activity_ids: activityIds.join(','),
+            tolerance: .0001,
+        });
+
         // hard-coded tolerance to limit the payload size
-        d3.json(`http://localhost:5000/trajectories?activity_ids=${activityIds.join(',')}&tolerance=.0001`, d => d)
-          .then(data => {
+        d3.json(url).then(data => {
               this.trajectories.remove()
               this.trajectories = L.geoJSON(data).addTo(this.map);
               this.trajectories.setStyle(d => ({color: '#666', opacity: .7}))
