@@ -143,7 +143,14 @@ function makeTable (container) {
     }
 
     Table.onRowClick = function (fn) {
+        if (!arguments.length) return onRowClick;
         onRowClick = fn;
+        return Table;
+    }
+
+    Table.onUpdate = function (fn) {
+        if (!arguments.length) return onUpdate;
+        onUpdate = fn;
         return Table;
     }
 
@@ -223,7 +230,7 @@ function makeTable (container) {
           });
 
         d3.select("#table-current-page").text(`Page ${page + 1}/${numPages}`);
-        
+        onUpdate(displayedData);        
         return Table;
     }
 
