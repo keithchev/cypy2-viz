@@ -209,6 +209,8 @@ function makeLinePlot (container, definition) {
     }
 
     function onMouseOut () {
+        // TODO: use a callback here to update the other lineplots,
+        // instead of this global selectAll call 
         d3.selectAll('.line-plot-mouse-path').attr('visibility', 'hidden');
     }
 

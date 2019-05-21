@@ -2,56 +2,7 @@
 import 'tachyons';
 import * as d3 from 'd3';
 
-const typeColors = {
-    'walk': d3.schemePaired[0], // light blue
-    'run': d3.schemePaired[1], // blue
-    'hike': d3.schemeCategory10[2], // green
-    'ride': d3.schemeCategory10[4], // purple
-}
-
-function makeColorMap ({min, max}) {
-    return function colorMap (val) {
-        val = val < min ? 0 : val - min;
-        val = val > max ? (max - min) : val;
-        return d3.interpolateRdYlGn(1 - val/(max - min));
-    }
-}
-
-const columnDefs = [
-    {
-        key: 'activity_type',
-        label: 'Type',
-        color: d => typeColors[d],
-    },{
-        key: 'date',
-        label: 'Date',
-        render: d => d3.timeFormat('%a %b %d %Y')(d),
-    },{
-        key: 'total_elapsed_time',
-        label: 'Time',
-        render: d => {
-            const hours = Math.floor(d/3600);
-            const minutes = Math.floor((d - hours*3600)/60);
-            return `${hours}:${d3.format('02.0f')(minutes)}`;
-        },
-        color: makeColorMap({min: 0, max: 3600*3}),
-    },{
-        key: 'total_distance',
-        label: 'Dist',
-        render: d => d.toFixed(1),
-        color: makeColorMap({min: 0, max: 60}),
-    },{
-        key: 'total_ascent',
-        label: 'Vert',
-        render: d => d.toFixed(),
-        color: makeColorMap({min: 0, max: 7000}),
-    },{
-        key: 'proximity',
-        label: 'Prox',
-        render: d => d < 10 ? d.toFixed(1) : d.toFixed(0),
-        color: makeColorMap({min: .1, max: 30})
-    }
-];
+import settings from './settings';
 
 
 function makeTable (container) {
@@ -83,7 +34,9 @@ function makeTable (container) {
     let filters = {};
 
     // create the column headers
-    const th = thead.selectAll('th').data(columnDefs, d => d.key);
+    const th = thead.selectAll('th')
+                    .data(settings.tableColumnDefinitions, d => d.key);
+
     th.exit().remove();
     th.enter().append('th')
       .attr('class', 'table-th')
@@ -121,7 +74,7 @@ function makeTable (container) {
           });
 
 
-    function Table () {}
+    const Table = {};
 
     Table.data = function (val) {
         if (!arguments.length) return data;
@@ -204,7 +157,7 @@ function makeTable (container) {
                .merge(tr);
 
         let td = tr.selectAll('td').data(row => {
-            return columnDefs.map(d => {
+            return settings.tableColumnDefinitions.map(d => {
                 if (row[d.key]===undefined || row[d.key]===null) {
                     return {html: 'NA', color: '#999'};
                 }
