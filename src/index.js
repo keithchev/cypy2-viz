@@ -8,12 +8,15 @@ import 'leaflet/dist/leaflet.css';
 
 import Slider from './slider';
 import makeTable from './table';
+import statsTable from './statsTable';
+
 import TrajectoryMap from './maps';
 import makeLinePlot from './linePlot'
 import ButtonGroup from './buttonGroup';
 
 import utils from './utils';
 import settings from './settings';
+import StatsTable from './statsTable';
 
 // global state object (d3 included for debugging)
 let APP = {L, d3};
@@ -24,7 +27,9 @@ let APP = {L, d3};
 // Activity table and callbacks
 //
 // ------------------------------------------------------------------
-APP.table = makeTable(d3.select("#table-container"));
+APP.table = makeTable({
+    container: "#table-container"
+});
 
 // 'row' here is an activity metadata object
 APP.table.onRowClick(row => changeSelectedActivity(row));
@@ -33,6 +38,17 @@ APP.table.onRowClick(row => changeSelectedActivity(row));
 APP.table.onUpdate(displayedData => {
     APP.displayedActivityIds = displayedData.map(row => row.activity_id);
     APP.map.updateTrajectoryCollection(APP.displayedActivityIds);
+});
+
+
+// ------------------------------------------------------------------
+//
+// stats table and callbacks
+//
+// ------------------------------------------------------------------
+
+APP.statsTable = new StatsTable({
+    container: '#stats-table-container',
 });
 
 
@@ -154,10 +170,10 @@ APP.linePlots.each(linePlot => {
     // update the x-domain in the stats table and all line plots except the altitude plot
     // TODO: only define onBrushCallback for the altitude lineplot
     linePlot.onBrushCallback(xDomain => {
-        // APP.statsTable.xDomain(xDomain).update();
+        APP.statsTable.xDomain(xDomain).update();
         APP.linePlots.each(linePlot => {
         if (linePlot.definition().key==='altitude') return;
-        linePlot.xDomain(xDomain).update();
+            linePlot.xDomain(xDomain).update();
         });
     });
 });
@@ -203,7 +219,7 @@ function changeSelectedActivity (metadata) {
         APP.records = records;
 
         // update the stats table
-        // APP.statsTable.data({metadata, records}).xDomain(null).update();
+        APP.statsTable.data(metadata, records).xDomain(null).update();
 
         // update the lineplots
         APP.linePlots.each(linePlot => {

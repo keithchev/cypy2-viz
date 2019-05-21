@@ -5,11 +5,12 @@ import * as d3 from 'd3';
 import settings from './settings';
 
 
-function makeTable (container) {
+function makeTable ({container}) {
 
+    container = d3.select(container);
     container.select("table").remove();
 
-    const table = container.append("table");
+    const table = container.append("table").attr("id", "activity-table");
     const thead = table.append("thead");
     const tbody = table.append("tbody");
     const footer = container.append("div").attr("id", "table-footer-container");

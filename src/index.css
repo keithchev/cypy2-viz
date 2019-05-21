@@ -11,7 +11,12 @@ div {
 }
 
 span {
-	cursor: pointer;
+	/* cursor: pointer; */
+}
+
+table {
+	border-spacing: 0px;
+	border-collapse: collapse;
 }
 
 #main-header {
@@ -120,6 +125,7 @@ span {
 	border-bottom: 1px solid #333;
 }
 
+
 #table-container {
 	/* here, the absolute height and relative position are needed 
 	to keep #table-foot-container from moving when the height of the table changes */
@@ -138,12 +144,10 @@ span {
 	padding-right: 20px; 
 }
 
-table {
+#activity-table {
 	width: 100%;
 	font-family: 'Roboto Mono', monospace;
 	font-size: 10px;
-	border-spacing: 0px;
-	border-collapse: collapse;
 }
 
 .table-th {
@@ -183,3 +187,35 @@ table {
 	text-align: center;
 	font-size: 12px;
 }
+
+
+#stats-table-container {
+	padding-right: 20px;
+}
+
+#stats-table {
+	width: 100%;
+}
+
+#stats-table td {
+	padding: 0px;
+	padding-top: 4px;
+	padding-bottom: 4px; 
+	line-height: 1; 
+	border: 0px;
+	border-bottom: 1px solid #ccc;
+}
+
+.stats-table-label {
+  color: #666;
+  font-size: 12px;
+}
+.stats-table-value {
+  font-size: 15px;
+  font-weight: bold;
+}
+.stats-table-units {
+	font-size: 12px;
+	padding-left: 4px;
+}
+

@@ -80,11 +80,11 @@ const statsDefinitions = [
     {   
         key: "moving_time",
         label: 'Moving time',
-        render: d => renderSeconds(d, showSeconds = true),
+        render: d => renderSeconds(d, true),
     },{
         key: "total_time",
         label: 'Total time',
-        render: d => renderSeconds(d, showSeconds = true),
+        render: d => renderSeconds(d, true),
     },{
         key: "total_distance",
         label: "Distance",
