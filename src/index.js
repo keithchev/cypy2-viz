@@ -25,12 +25,14 @@ let APP = {L, d3};
 //
 // ------------------------------------------------------------------
 APP.table = makeTable(d3.select("#table-container"));
-APP.table.onRowClick(row => changeSelectedActivity(row.activity_id));
+
+// 'row' here is an activity metadata object
+APP.table.onRowClick(row => changeSelectedActivity(row));
 
 // whenever the table changes (on filtering, paging, sorting, proximity searching, etc)
 APP.table.onUpdate(displayedData => {
-  APP.displayedActivityIds = displayedData.map(row => row.activity_id);
-  APP.map.updateTrajectoryCollection(APP.displayedActivityIds);
+    APP.displayedActivityIds = displayedData.map(row => row.activity_id);
+    APP.map.updateTrajectoryCollection(APP.displayedActivityIds);
 });
 
 
@@ -53,16 +55,16 @@ APP.activityTypeButtons = new ButtonGroup({
 });
 
 APP.activityDateButtons = new ButtonGroup({
-  container: '#table-controls-container',
-  className: 'activity-year-button',
-  label: 'Year',
-  data: [2015, 2016, 2017, 2018, 2019],
-  onlyOneHot: false,
-  callback: values => {
-      APP.table
-         .updateFilter('year', row => !values.length || values.includes(row.date.getFullYear()))
-         .update();
-  }
+    container: '#table-controls-container',
+    className: 'activity-year-button',
+    label: 'Year',
+    data: [2015, 2016, 2017, 2018, 2019],
+    onlyOneHot: false,
+    callback: values => {
+        APP.table
+           .updateFilter('year', row => !values.length || values.includes(row.date.getFullYear()))
+           .update();
+    }
 });
 
 
@@ -72,32 +74,32 @@ APP.activityDateButtons = new ButtonGroup({
 //
 // ------------------------------------------------------------------
 APP.map = new TrajectoryMap({
-  container: 'map-container',
-  onClick: function (lat, lon) {
-    d3.json(settings.api.url({endpoint: `/near/${lat}/${lon}`}))
-      .then(data => {
-        APP.table.merge(data, 'activity_id')
-                 .sortParams({key: 'proximity', order: -1})
-                 .update();
-      });
+    container: 'map-container',
+    onClick: function (lat, lon) {
+        d3.json(settings.api.url({endpoint: `/near/${lat}/${lon}`}))
+          .then(data => {
+            APP.table.merge(data, 'activity_id')
+                     .sortParams({key: 'proximity', order: -1})
+                     .update();
+        });
     }
 });
 
-
-// ------------------------------------------------------------------
-//
-// map controls - tolerance value and proximity search
-//
-// ------------------------------------------------------------------
 APP.toleranceButtons = new ButtonGroup({
-  container: '#map-controls-container',
-  className: 'tolerance-button',
-  label: 'Tolerance',
-  data: [0, .0001, .001],
-  onlyOneHot: true,
-  callback: values => {},
+    container: '#map-controls-container',
+    className: 'tolerance-button',
+    label: 'Tolerance',
+    data: [0, .0001, .001],
+    onlyOneHot: true,
+    callback: values => {},
 });
 
+// ------------------------------------------------------------------
+//
+// map controls - proximity search
+// TODO: get rid of this?
+//
+// ------------------------------------------------------------------
 d3.select("#map-controls-container")
   .append("div")
   .attr("class", "button-group-button")
@@ -110,12 +112,12 @@ d3.select("#map-controls-container")
 
     // if we're activating the search
     if (APP.proximitySearch) {
-      APP.d3.select(APP.map._container).style("cursor", "crosshair");
+        APP.d3.select(APP.map._container).style("cursor", "crosshair");
     }
     // reset the filter if we're deactivating the search
     if (!APP.proximitySearch) {
-      APP.d3.select(APP.map._container).style("cursor", "");
-      APP.table.updateFilter('proximity', d => true).update();
+        APP.d3.select(APP.map._container).style("cursor", "");
+        APP.table.updateFilter('proximity', d => true).update();
     }
   });
 
@@ -137,27 +139,27 @@ d3.select("#plot-container")
 APP.linePlots = d3.selectAll(".line-plot-container");
 APP.linePlots.each(linePlot => {
 
-  // update the mouse marker on the map and the mouse line in all line plots
-  linePlot.onMouseMoveCallback(mouseIndex => {
-    const [lat, lon] = [APP.records.lat[mouseIndex], APP.records.lon[mouseIndex]];
+    // update the mouse marker on the map and the mouse line in all line plots
+    linePlot.onMouseMoveCallback(mouseIndex => {
 
-    // TODO: move this to APP.map.onMouseMove?
-    APP.map.mouseMarker.setLatLng([lat, lon]);
+        // TODO: move this to APP.map.onMouseMove?
+        const [lat, lon] = [APP.records.lat[mouseIndex], APP.records.lon[mouseIndex]];
+        APP.map.mouseMarker.setLatLng([lat, lon]);
 
-    APP.linePlots.each(linePlot => {
-      linePlot.updateMousePosition(mouseIndex);
+        APP.linePlots.each(linePlot => {
+            linePlot.updateMousePosition(mouseIndex);
+        });
     });
-  });
 
-  // update the x-domain in all line plots except the altitude plot
-  // TODO: only define onBrushCallback for the altitude lineplot
-  linePlot.onBrushCallback(xDomain => {
-    APP.linePlots.each(linePlot => {
-      if (linePlot.definition().key==='altitude') return;
-      linePlot.xDomain(xDomain).update();
+    // update the x-domain in the stats table and all line plots except the altitude plot
+    // TODO: only define onBrushCallback for the altitude lineplot
+    linePlot.onBrushCallback(xDomain => {
+        // APP.statsTable.xDomain(xDomain).update();
+        APP.linePlots.each(linePlot => {
+        if (linePlot.definition().key==='altitude') return;
+        linePlot.xDomain(xDomain).update();
+        });
     });
-  });
-
 });
 
 
@@ -169,53 +171,57 @@ APP.linePlots.each(linePlot => {
 d3.json(settings.api.url({endpoint: '/metadata/20'}))
   .then(activities => {
 
-    // set tolerance first so map loads correctly
-    APP.toleranceButtons.setValue(.0001);
+      // set tolerance first so map loads correctly
+      APP.toleranceButtons.setValue(.0001);
 
-    APP.activities = activities;
-    APP.activities.forEach(parseActivityMetadata);
-    APP.table.data(APP.activities);
+      APP.activities = activities;
+      APP.activities.forEach(parseActivityMetadata);
+      APP.table.data(APP.activities);
 
-    APP.activityTypeButtons.setValue(['ride']);
-    APP.activityDateButtons.setValue([2019]);
+      APP.activityTypeButtons.setValue(['ride']);
+      APP.activityDateButtons.setValue([2019]);
 
 });
 
 
-function changeSelectedActivity (activityId) {
+function changeSelectedActivity (metadata) {
 
-  // update the global state
-  APP.selectedActivityId = activityId;
+    // update the global state
+    APP.selectedActivityId = metadata.activity_id;
 
-  // update the map
-  APP.map.updateTrajectory(APP.selectedActivityId, APP.toleranceButtons.values);
+    // update the map
+    APP.map.updateTrajectory(APP.selectedActivityId, APP.toleranceButtons.values);
 
-  // update the lineplots
-  const url = settings.api.url({
-    endpoint: `/records/${APP.selectedActivityId}`,
-    sampling: 10
-  });
+    // load the activity records
+    const url = settings.api.url({
+        endpoint: `/records/${APP.selectedActivityId}`,
+        sampling: 10
+    });
 
-  d3.json(url)
-    .then(function (records) {
-      APP.records = records;
-      APP.linePlots.each(linePlot => {
-        linePlot.lineData({
-          x: records.elapsed_time, 
-          y: records[linePlot.definition().key]
+    d3.json(url)
+      .then(function (records) {
+        APP.records = records;
+
+        // update the stats table
+        // APP.statsTable.data({metadata, records}).xDomain(null).update();
+
+        // update the lineplots
+        APP.linePlots.each(linePlot => {
+            linePlot.lineData({
+                x: records.elapsed_time, 
+                y: records[linePlot.definition().key]
+            });
+            linePlot.xDomain(null).update();
         });
-        linePlot.xDomain(null).update();
-      });
     });
 }
 
 
-
 function parseActivityMetadata (metadata) {
 
-  // all of the timestamps should be (nearly) the same
-  metadata.date = d3.isoParse(metadata.strava_timestamp);
-  metadata.total_ascent *= 3.2808; // meters to feet
-  metadata.total_distance *= 0.000621371; // meters to miles
+    // all of the timestamps should be (nearly) the same
+    metadata.date = d3.isoParse(metadata.strava_timestamp);
+    metadata.total_ascent *= 3.2808; // meters to feet
+    metadata.total_distance *= 0.000621371; // meters to miles
 
 }
