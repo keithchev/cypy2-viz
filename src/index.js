@@ -155,22 +155,31 @@ d3.select("#plot-container")
 APP.linePlots = d3.selectAll(".line-plot-container");
 APP.linePlots.each(linePlot => {
 
-    // update the mouse marker on the map and the mouse line in all line plots
+    // mousemove updates
     linePlot.onMouseMoveCallback(mouseIndex => {
 
+        // update the mouse marker on the map
         // TODO: move this to APP.map.onMouseMove?
         const [lat, lon] = [APP.records.lat[mouseIndex], APP.records.lon[mouseIndex]];
         APP.map.mouseMarker.setLatLng([lat, lon]);
 
+        // update the vertical mouse line on each lineplot
         APP.linePlots.each(linePlot => {
             linePlot.updateMousePosition(mouseIndex);
         });
     });
 
-    // update the x-domain in the stats table and all line plots except the altitude plot
+    // brushing updates
     // TODO: only define onBrushCallback for the altitude lineplot
     linePlot.onBrushCallback(xDomain => {
+
+        // stats table
         APP.statsTable.xDomain(xDomain).update();
+
+        // highlighted trajectory on the map
+        APP.map.updateHighlightedSegment(xDomain);
+
+        // update each lineplot
         APP.linePlots.each(linePlot => {
         if (linePlot.definition().key==='altitude') return;
             linePlot.xDomain(xDomain).update();

@@ -95,16 +95,15 @@ class StatsTable {
 
     calcStats () {
         // stats for a window
-        // TODO: calculate average grade, normalized power, IF, and TSS
         
-        // hard-coded FTP in watts
+        // hard-coded rider weight in kg and FTP in watts
         const RIDER_FTP = 275;
         const RIDER_WEIGHT = 63;
 
         const stats = {}
 
         let filter = row => true;
-        if (this._xDomain) {
+        if (this._xDomain!==null) {
             filter = row => {
                 return (row.elapsed_time > this._xDomain[0]) && (row.elapsed_time < this._xDomain[1]);
             }

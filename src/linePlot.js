@@ -144,7 +144,7 @@ function makeLinePlot (container, definition) {
         }
 
         let filter = d => true;
-        if (xDomain) {
+        if (xDomain!==null) {
             filter = d => (d.x > xDomain[0]) && (d.x < xDomain[1]);
         } else {
             xDomain = [lineData[0].x, lineData[lineData.length - 1].x];
@@ -157,8 +157,8 @@ function makeLinePlot (container, definition) {
         xScale.domain(xDomain);
         yScale.domain(yDomain);
 
-        // make sure the fill looks right
-        // (in practice, this is only for the altitude plot)
+        // if there's a fill color, we need to pad the lineData 
+        // to force the fill to have a horizontal bottom edge
         if (definition.fillColor) {
             lineData = [{x: xDomain[0], y: yMin}, ...lineData, {x: xDomain[1], y: yMin}];
         }
@@ -216,7 +216,7 @@ function makeLinePlot (container, definition) {
 
     function brushed () {
         const range = d3.event.selection;
-        const xDomain = (range===null) ? xScale.domain() : range.map(xScale.invert);
+        const xDomain = (range===null) ? null : range.map(xScale.invert);
         onBrushCallback(xDomain);
     }
 

@@ -8,16 +8,22 @@ const lineOptions = {
     color: 'red',
     weight: 3,
     opacity: .9,
-  };
-  
-  const markerOptions = {
+};
+
+const highlightedOptions = {
+    color: '#0f81e2',
+    weight: 4,
+    opacity: 1,
+}
+
+const markerOptions = {
     fillColor: "#1a80df",
     fillOpacity: 1,
     color: "#fff",
     stroke: true,
-    weight: 1.5,
-    radius: 5,
-  };
+    weight: 2,
+    radius: 6,
+};
 
 
 class TrajectoryMap {
@@ -33,11 +39,15 @@ class TrajectoryMap {
             maxZoom: 18,
         }).addTo(this.map);
 
-        // JSON layer and marker
+        // polylines to display the selected activity's trajectory
         this.trajectory = L.polyline([[0, 0], [0, 0]], lineOptions).addTo(this.map);
-
+        this.highlightedTrajectory = L.polyline([[0, 0], [0, 0]], highlightedOptions).addTo(this.map);
+        
+        // layer to show all of the activities displayed in the table
         this.trajectories = L.geoJSON().addTo(this.map);
 
+        // mouse marker (updated when the user hovers over the lineplots)
+        // and click marker (updated when the user clicks on the map)
         this.mouseMarker = L.circleMarker([0, 0], markerOptions).addTo(this.map);
         this.clickMarker = L.circleMarker([0, 0], markerOptions).addTo(this.map);
 
@@ -68,8 +78,9 @@ class TrajectoryMap {
         });
 
         d3.json(url).then(data => {
-          this.trajectory.setLatLngs(data.coordinates.map(row => [row[1], row[0]]));
-          this.map.fitBounds(this.trajectory.getBounds());
+            this.trajectoryCoordinates = data.coordinates;
+            this.trajectory.setLatLngs(data.coordinates.map(row => [row[1], row[0]]));
+            this.map.fitBounds(this.trajectory.getBounds());
         });
 
         this.trajectories.setStyle(feature => {
@@ -93,9 +104,8 @@ class TrajectoryMap {
         d3.json(url).then(data => {
               this.trajectories.remove()
               this.trajectories = L.geoJSON(data).addTo(this.map);
-              this.trajectories.setStyle(d => ({color: '#666', opacity: .7}))
+              this.trajectories.setStyle(d => ({color: '#666', opacity: .7})).bringToBack();
               this.map.fitBounds(this.trajectories.getBounds());
-              this.trajectories.bringToBack();
           })
 
     }
@@ -106,6 +116,17 @@ class TrajectoryMap {
 
     }
 
+    // highlight the segment of the selected trajectory between two timepoints
+    updateHighlightedSegment (range) {
+        if (range===null) {
+            this.highlightedTrajectory.setLatLngs([[0, 0]]);
+            return
+        }
+        const coords = this.trajectoryCoordinates.filter(row => {
+            return (row[2] > range[0]) && (row[2] < range[1]);
+        });
+        this.highlightedTrajectory.setLatLngs(coords.map(row => [row[1], row[0]]));
+    }
 
 
 }
