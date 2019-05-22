@@ -97,6 +97,10 @@ class StatsTable {
         // stats for a window
         // TODO: calculate average grade, normalized power, IF, and TSS
         
+        // hard-coded FTP in watts
+        const RIDER_FTP = 275;
+        const RIDER_WEIGHT = 63;
+
         const stats = {}
 
         let filter = row => true;
@@ -109,7 +113,7 @@ class StatsTable {
         const records = this.records.filter(filter);
 
         const first = records[0];
-        const last = records[records.length-1];
+        const last = records[records.length - 1];
         const dt = records[1].elapsed_time - records[0].elapsed_time;
 
         let dz, gain = 0, loss = 0;
@@ -127,14 +131,21 @@ class StatsTable {
         stats.total_time = last.elapsed_time - first.elapsed_time;
         stats.total_distance = last.distance - first.distance;
 
-        stats.moving_time = stats.total_time - d3.sum(records, d => d.pause_mask)*dt;
+        // add dt here so that moving time is zero when we are entirely within a pause
+        stats.moving_time = stats.total_time - d3.sum(records, d => d.pause_mask)*dt + dt;
 
         stats.total_work = d3.sum(records, d => d.power) * dt/1000;
         stats.average_vam = d3.mean(records, d => d.vam);
-        stats.average_speed = d3.mean(records, d => d.speed);
-        stats.average_power = d3.mean(records, d => power);
-        stats.average_cadence = d3.mean(records, d => d.cadence);
+        stats.average_grade = d3.mean(records, d => d.grade*100);
+        stats.average_speed = d3.mean(records, d => d.pause_mask ? NaN : d.speed);
+        stats.average_power = d3.mean(records, d => d.pause_mask ? NaN : d.power);
+        stats.average_cadence = d3.mean(records, d => d.pause_mask ? NaN : d.cadence);
         
+        stats.normalized_power = Math.pow(d3.mean(records, d => Math.pow(d.power_ma, 4)), .25);
+        stats.power_per_kg = stats.normalized_power / RIDER_WEIGHT;
+        stats.intensity_factor = stats.normalized_power / RIDER_FTP;
+        stats.training_stress_score = 100 * (stats.moving_time/3600.) * Math.pow(stats.intensity_factor, 2);
+          
         this.stats = stats;
 
     }
