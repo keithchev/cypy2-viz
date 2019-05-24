@@ -11,9 +11,10 @@ function makeTable ({container}) {
     container.select("table").remove();
 
     const table = container.append("table").attr("id", "activity-table");
+    const footer = container.append("div").attr("id", "table-footer-container");
+
     const thead = table.append("thead");
     const tbody = table.append("tbody");
-    const footer = container.append("div").attr("id", "table-footer-container");
 
     // hard-coded page size (rows per page)
     const pageSize = 20;
@@ -28,8 +29,9 @@ function makeTable ({container}) {
     let sortParams = {key: 'date', order: 1};
 
     // callbacks
-    let onRowClick = () => undefined;
+    let onSelectActivity = () => undefined;
     let onUpdate = () => undefined;
+
 
     // dict of filter functions to select a subset of metadata
     let filters = {};
@@ -97,11 +99,12 @@ function makeTable ({container}) {
         return Table;
     }
 
-    Table.onRowClick = function (fn) {
+    Table.onSelectActivity = function (fn) {
         if (!arguments.length) return onRowClick;
-        onRowClick = fn;
+        onSelectActivity = fn;
         return Table;
     }
+
 
     Table.onUpdate = function (fn) {
         if (!arguments.length) return onUpdate;
@@ -122,6 +125,12 @@ function makeTable ({container}) {
         return Table;
     }
 
+    Table.setSelectedActivity = activityId => {
+        container.selectAll('.table-tr').classed('table-tr-selected', d => {
+            return activityId===d.activity_id;
+        });
+        return Table;
+    };
 
     Table.update = function () {
 
@@ -150,10 +159,9 @@ function makeTable ({container}) {
 
         tr = tr.enter().append('tr')
                .attr('class', 'table-tr')
-               .on('click', function (d) {
-                   d3.selectAll('.table-tr').classed('table-tr-selected', false);
-                   d3.select(this).classed('table-tr-selected', true);
-                   onRowClick(d);
+               .on('click', row => {
+                    onSelectActivity(row.activity_id);
+                    Table.setSelectedActivity(row.activity_id)
                })
                .merge(tr);
 
@@ -175,10 +183,10 @@ function makeTable ({container}) {
           .merge(td)
           .html(d => d.html)
           .style('background-color', d => {
-            if (!d.color) return 'white';
-            let color = d3.color(d.color);
-            color.opacity = .5;
-            return color;
+              if (!d.color) return 'white';
+              let color = d3.color(d.color);
+              color.opacity = .5;
+              return color;
           });
 
         d3.select("#table-current-page").text(`Page ${page + 1}/${numPages}`);

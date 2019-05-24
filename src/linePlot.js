@@ -36,7 +36,7 @@ function makeLinePlot (container, definition) {
     const line = d3.line()
                    .x(d => xScale(d.x))
                    .y(d => yScale(d.y))
-                   .defined(d => (d.y > 0) && (definition.ignorePauses ? true : !d.pause));
+                   .defined(d => definition.ignorePauses ? true : (d.y > 0 && !d.pause));
 
 
     const yAxis = d3.axisLeft(yScale);    

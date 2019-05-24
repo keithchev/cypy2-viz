@@ -31,8 +31,8 @@ APP.table = makeTable({
     container: "#table-container"
 });
 
-// 'row' here is an activity metadata object
-APP.table.onRowClick(row => changeSelectedActivity(row.activity_id));
+// when an activity (a table row) is clicked
+APP.table.onSelectActivity(activityId => changeSelectedActivity(activityId));
 
 // whenever the table changes (on filtering, paging, sorting, proximity searching, etc)
 APP.table.onUpdate(displayedData => {
@@ -99,7 +99,10 @@ APP.map = new TrajectoryMap({
                      .update();
         });
     },
-    onTrajectoryClick: activityId => changeSelectedActivity(activityId),
+    onTrajectoryClick: activityId => {
+        APP.table.setSelectedActivity(activityId);
+        changeSelectedActivity(activityId);
+    },
 });
 
 APP.toleranceButtons = new ButtonGroup({
