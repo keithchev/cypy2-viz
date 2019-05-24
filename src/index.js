@@ -32,7 +32,7 @@ APP.table = makeTable({
 });
 
 // 'row' here is an activity metadata object
-APP.table.onRowClick(row => changeSelectedActivity(row));
+APP.table.onRowClick(row => changeSelectedActivity(row.activity_id));
 
 // whenever the table changes (on filtering, paging, sorting, proximity searching, etc)
 APP.table.onUpdate(displayedData => {
@@ -91,14 +91,15 @@ APP.activityDateButtons = new ButtonGroup({
 // ------------------------------------------------------------------
 APP.map = new TrajectoryMap({
     container: 'map-container',
-    onClick: function (lat, lon) {
+    onMapClick: (lat, lon) => {
         d3.json(settings.api.url({endpoint: `/near/${lat}/${lon}`}))
           .then(data => {
             APP.table.merge(data, 'activity_id')
                      .sortParams({key: 'proximity', order: -1})
                      .update();
         });
-    }
+    },
+    onTrajectoryClick: activityId => changeSelectedActivity(activityId),
 });
 
 APP.toleranceButtons = new ButtonGroup({
@@ -194,14 +195,14 @@ APP.linePlots.each(linePlot => {
 //
 // ------------------------------------------------------------------
 d3.json(settings.api.url({endpoint: '/metadata/20'}))
-  .then(activities => {
+  .then(metadata => {
 
       // set tolerance first so map loads correctly
       APP.toleranceButtons.setValue(.0001);
 
-      APP.activities = activities;
-      APP.activities.forEach(parseActivityMetadata);
-      APP.table.data(APP.activities);
+      APP.metadata = metadata;
+      APP.metadata.forEach(parseActivityMetadata);
+      APP.table.data(APP.metadata);
 
       APP.activityTypeButtons.setValue(['ride']);
       APP.activityDateButtons.setValue([2019]);
@@ -209,10 +210,11 @@ d3.json(settings.api.url({endpoint: '/metadata/20'}))
 });
 
 
-function changeSelectedActivity (metadata) {
+function changeSelectedActivity (activityId) {
 
     // update the global state
-    APP.selectedActivityId = metadata.activity_id;
+    APP.selectedActivityId = activityId;
+    const metadata = APP.metadata.filter(d => d.activity_id===activityId)[0];
 
     // update the map
     APP.map.updateTrajectory(APP.selectedActivityId, APP.toleranceButtons.values);

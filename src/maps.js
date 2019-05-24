@@ -4,19 +4,24 @@ import * as d3 from 'd3';
 import settings from './settings';
 
 
-const lineOptions = {
+const selectedTrajectoryStyle = {
     color: 'red',
     weight: 3,
     opacity: .9,
 };
 
-const highlightedOptions = {
+const highlightedTrajectoryStyle = {
     color: '#0f81e2',
     weight: 4,
     opacity: 1,
 }
 
-const markerOptions = {
+const trajectoryCollectionStyle = {
+    color: '#666', 
+    opacity: .7
+};
+
+const markerStyle = {
     fillColor: "#1a80df",
     fillOpacity: 1,
     color: "#fff",
@@ -28,9 +33,12 @@ const markerOptions = {
 
 class TrajectoryMap {
 
-    constructor({container, onClick}) {
+    constructor({container, onMapClick, onTrajectoryClick}) {
 
         this.map = L.map(container);
+
+        this.onMapClick = onMapClick;
+        this.onTrajectoryClick = onTrajectoryClick;
 
         // OSM tiles
         L.tileLayer(
@@ -40,16 +48,16 @@ class TrajectoryMap {
         }).addTo(this.map);
 
         // polylines to display the selected activity's trajectory
-        this.trajectory = L.polyline([[0, 0], [0, 0]], lineOptions).addTo(this.map);
-        this.highlightedTrajectory = L.polyline([[0, 0], [0, 0]], highlightedOptions).addTo(this.map);
+        this.trajectory = L.polyline([[0, 0], [0, 0]], selectedTrajectoryStyle).addTo(this.map);
+        this.highlightedTrajectory = L.polyline([[0, 0], [0, 0]], highlightedTrajectoryStyle).addTo(this.map);
         
         // layer to show all of the activities displayed in the table
         this.trajectories = L.geoJSON().addTo(this.map);
 
         // mouse marker (updated when the user hovers over the lineplots)
         // and click marker (updated when the user clicks on the map)
-        this.mouseMarker = L.circleMarker([0, 0], markerOptions).addTo(this.map);
-        this.clickMarker = L.circleMarker([0, 0], markerOptions).addTo(this.map);
+        this.mouseMarker = L.circleMarker([0, 0], markerStyle).addTo(this.map);
+        this.clickMarker = L.circleMarker([0, 0], markerStyle).addTo(this.map);
 
         // one way to hide the clickMarker:
         // clickMarker.setStyle({opacity: 0, fillOpacity: 0});
@@ -59,7 +67,7 @@ class TrajectoryMap {
 
         this.map.on("click", d => {
             this.clickMarker.setLatLng(d.latlng);
-            onClick(d.latlng.lat, d.latlng.lng);
+            this.onMapClick(d.latlng.lat, d.latlng.lng);
         });
     
         this.map.on("mousemove", function (d) {
@@ -100,11 +108,23 @@ class TrajectoryMap {
             tolerance: .0001,
         });
 
+        const onEachFeature = (feature, layer) => {
+            layer.on("mouseover", event => layer.setStyle({color: 'black'}));
+            layer.on("mouseout", event => layer.setStyle(trajectoryCollectionStyle));
+            layer.on("click", event => {
+                L.DomEvent.stop(event);
+                this.onTrajectoryClick(feature.properties.activity_id);
+                return false;     
+            });
+        }
+
         // hard-coded tolerance to limit the payload size
         d3.json(url).then(data => {
               this.trajectories.remove()
-              this.trajectories = L.geoJSON(data).addTo(this.map);
-              this.trajectories.setStyle(d => ({color: '#666', opacity: .7})).bringToBack();
+              this.trajectories = L.geoJSON(data, {
+                  style: d => trajectoryCollectionStyle,
+                  onEachFeature: onEachFeature,
+              }).addTo(this.map).bringToBack();
               this.map.fitBounds(this.trajectories.getBounds());
           })
 
