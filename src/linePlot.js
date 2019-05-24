@@ -33,7 +33,12 @@ function makeLinePlot (container, definition) {
     const xScale = d3.scaleLinear().range([0, props.width]);
     const yScale = d3.scaleLinear().range([props.height, 0]);
 
-    const line = d3.line().x(d => xScale(d.x)).y(d => yScale(d.y));
+    const line = d3.line()
+                   .x(d => xScale(d.x))
+                   .y(d => yScale(d.y))
+                   .defined(d => (d.y > 0) && (definition.ignorePauses ? true : !d.pause));
+
+
     const yAxis = d3.axisLeft(yScale);    
 
     // SVG itself
@@ -112,12 +117,18 @@ function makeLinePlot (container, definition) {
         return LinePlot;
     }
 
-    LinePlot.lineData = function ({x, y}) {
+    LinePlot.lineData = function ({x, y, pause}) {
         if (!arguments.length) return lineData;
         if (y===undefined) {
             lineData = undefined;
         } else {
-            lineData = x.map((val, ind) => ({x: val, y: y[ind]}));
+            lineData = x.map((val, ind) => {
+                return {
+                    x: val, 
+                    y: y[ind], 
+                    pause: pause[ind]
+                };
+            });
         }
         return LinePlot;
     }
@@ -151,7 +162,10 @@ function makeLinePlot (container, definition) {
         }
 
         const croppedLineData = lineData.filter(filter);
-        const [yMin, yMax] = [d3.min(lineData, d => d.y), d3.max(lineData, d => d.y)];
+        const [yMin, yMax] = [
+            d3.min(lineData, d => d.y), 
+            d3.max(lineData, d => d.y)];
+
         yDomain = definition.range==='auto' ? [yMin, yMax] : definition.range;
 
         xScale.domain(xDomain);

@@ -234,7 +234,8 @@ function changeSelectedActivity (metadata) {
         APP.linePlots.each(linePlot => {
             linePlot.lineData({
                 x: records.elapsed_time, 
-                y: records[linePlot.definition().key]
+                y: records[linePlot.definition().key],
+                pause: records.pause_mask,
             });
             linePlot.xDomain(null).update();
         });

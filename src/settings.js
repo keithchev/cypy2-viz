@@ -159,13 +159,14 @@ const linePlotDefinitions = [
         range: 'auto',
         hideMean: true,
         brushable: true,
+        ignorePauses: true,
         tickFormat: d => toFixed(d, 0),
     },{
         key: 'heart_rate',
         color: '#d62728', // red
         label: 'Heart rate',
         units: 'bpm',
-        range: [90, 180],
+        range: [80, 180],
         tickFormat: d => toFixed(d, 0),
     },{
         key: 'power',
