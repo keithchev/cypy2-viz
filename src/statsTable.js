@@ -15,6 +15,21 @@ const layout = [
 
 
 class StatsTable {
+/*     
+    Table of statistics for either an entire activity or a brushed region
+
+    Arguments
+    ---------
+    container: string; ID of the div that wraps the lineplot
+
+    Methods
+    -------
+    data: updates the metadata and records (metadata is currently unused)
+    xDomain: the x-axis domain of the selected region as an array of [min, max]
+             (null if no region is brushed/selected)
+    update: recalculates statistics and updates the table
+    
+ */
 
     constructor ({container}) {
 
@@ -130,7 +145,7 @@ class StatsTable {
         stats.total_time = last.elapsed_time - first.elapsed_time;
         stats.total_distance = last.distance - first.distance;
 
-        // add dt here so that moving time is zero when we are entirely within a pause
+        // the plus dt here is required for the moving time to be zero when we are entirely within a pause
         stats.moving_time = stats.total_time - d3.sum(records, d => d.pause_mask)*dt + dt;
 
         stats.total_work = d3.sum(records, d => d.power) * dt/1000;

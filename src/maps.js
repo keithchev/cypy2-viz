@@ -32,7 +32,28 @@ const markerStyle = {
 
 
 class TrajectoryMap {
+/*     
+    Leaflet map to display activity trajectories
 
+    Arguments
+    ---------
+    container: string; ID of the div that wraps the lineplot
+    onMapClick: callback called when the map is clicked
+    onTrajectoryClick: callback called when a trajectory is clicked
+
+    Methods
+    -------
+    updateTrajectory: function of activityId; updates the trajectory, displayed in red,
+                      to the trajectory of the selected activity
+
+    updateTrajectoryCollection: function of an array of activityIds; updates the trajectories,
+                                displayed in gray, corresponding to the specified activities
+
+    updateHighlightedSegment: function of a time interval [tmin, tmax] that highlights the portion
+                              of the currently selected trajectory (shown in red) that occured
+                              within the time interval
+
+ */
     constructor({container, onMapClick, onTrajectoryClick}) {
 
         this.map = L.map(container);

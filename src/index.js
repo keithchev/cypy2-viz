@@ -204,7 +204,17 @@ d3.json(settings.api.url({endpoint: '/metadata/20'}))
       APP.toleranceButtons.setValue(.0001);
 
       APP.metadata = metadata;
-      APP.metadata.forEach(parseActivityMetadata);
+
+      // parse timestamp and switch from metric to american units
+      APP.metadata.forEach(row => {
+    
+        // using strava_timestamp here is arbtirary; all of the timestamp fields should be the same
+        row.date = d3.isoParse(metadata.strava_timestamp);
+
+        row.total_ascent *= 3.2808; // meters to feet
+        row.total_distance *= 0.000621371; // meters to miles
+      });
+
       APP.table.data(APP.metadata);
 
       APP.activityTypeButtons.setValue(['ride']);
@@ -247,12 +257,3 @@ function changeSelectedActivity (activityId) {
     });
 }
 
-
-function parseActivityMetadata (metadata) {
-
-    // all of the timestamps should be (nearly) the same
-    metadata.date = d3.isoParse(metadata.strava_timestamp);
-    metadata.total_ascent *= 3.2808; // meters to feet
-    metadata.total_distance *= 0.000621371; // meters to miles
-
-}

@@ -6,8 +6,46 @@ import utils from './utils';
 
 
 function makeLinePlot (container, definition) {
+/*     
+    A linePlot closure
 
-    container = d3.select(container);
+    Arguments
+    ---------
+    container: string; ID of the div that wraps the lineplot
+    definition: dict of configuration options
+      key: string, column of the records array to plot
+      color: lineplot line color (none if undefined)
+      fillColor: lineplot fill color (for altitude plot only)
+      label: string; label/header for the plot
+      units: string; units abbreviation for textbox
+      range: y-domain limits; either 'auto' or [min, max]
+      hideMean: bool; whether to show the mean as a dashed horizontal line
+      brushable: bool; whether the user can select a region by brushing
+      ignorePauses: bool; whether to plot data during pauses
+      tickFormat: function; generate tick labels from data points
+
+    
+    Setters/getters
+    ---------------
+    definition: read-only access to the definition dict
+    xDomain: the x-axis domain as a two-element array of [min, max]
+    lineData: the data to plot as an {x, y, pause} dict of arrays
+
+    Callbacks
+    ---------
+    onMouseMoveCallback: function to call whenever the mouse moves over the plot
+    onBrushCallback: function to call whenever the user brushes the plot 
+                     (only if definition.brushable is true)
+    
+    Update methods
+    --------------
+    update: updates everything; must be called manually after xDomain() or lineData() 
+    updateMousePosition: updates the vertical line that marks the mouse position;
+                         allows the line to update when the user mouses over other lineplots
+    
+ */
+
+ container = d3.select(container);
     container.select("svg").remove();
 
     const props = {
@@ -33,11 +71,16 @@ function makeLinePlot (container, definition) {
     const xScale = d3.scaleLinear().range([0, props.width]);
     const yScale = d3.scaleLinear().range([props.height, 0]);
 
+    // line function for horizontal mean and vertical mouse position lines
     const line = d3.line()
+                   .x(d => xScale(d.x))
+                   .y(d => yScale(d.y));
+
+    // line for the data itself (note the use of .defined())
+    const dataLine = d3.line()
                    .x(d => xScale(d.x))
                    .y(d => yScale(d.y))
                    .defined(d => definition.ignorePauses ? true : (d.y > 0 && !d.pause));
-
 
     const yAxis = d3.axisLeft(yScale);    
 
@@ -176,7 +219,7 @@ function makeLinePlot (container, definition) {
         if (definition.fillColor) {
             lineData = [{x: xDomain[0], y: yMin}, ...lineData, {x: xDomain[1], y: yMin}];
         }
-        svg.select("#data-path").attr("d", d => line(lineData));
+        svg.select("#data-path").attr("d", d => dataLine(lineData));
 
         let tickValues = yScale.domain();
 

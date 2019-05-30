@@ -6,6 +6,39 @@ import settings from './settings';
 
 
 function makeTable ({container}) {
+/*     
+    A closure to create/update a table of activities (rides/runs/walks)
+
+    Arguments
+    ---------
+    container: string; ID of the div that wraps the lineplot
+
+
+    Setters/getters
+    ---------------
+    data
+    merge
+    page
+    sortParams
+    updateFilter
+
+    Callbacks
+    ---------
+    onUpdate: callback called whenever the table is updated;
+              the displayedData array is passed as an argument. 
+              intended use is to update the map with the trajectories 
+              of the activities displayed in the table.
+
+    onSelectActivity: callback called when an activity is selected (i.e., when its row is clicked);
+                      the activityId of the selected activity is passed as an argument
+                
+    Update methods
+    --------------
+    setSelectedActivity: function of activityId; changes the selected activity
+                         intended use is selecting activities by clicking on their trajectories on the map
+
+    update: updates everything; must be called manually after any of the setters are called
+ */
 
     container = d3.select(container);
     container.select("table").remove();
