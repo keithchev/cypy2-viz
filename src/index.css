@@ -127,9 +127,12 @@ table {
 
 
 #table-container {
-	/* here, the absolute height and relative position are needed 
-	to keep #table-foot-container from moving when the height of the table changes */
-	height: 380px;
+	/* Here, the absolute height and relative position are needed 
+	to keep #table-foot-container from moving when the height of the table changes
+	(which happens on the last page of the table, or if there are fewer activities than rows per page)
+	Note also that the absolute height depends on the number of rows per page in the table
+	(which is hard-coded in table.js) */
+	height: 550px;
 	position: relative;
 	padding-right: 20px;
 }

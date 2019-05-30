@@ -209,7 +209,7 @@ d3.json(settings.api.url({endpoint: '/metadata/20'}))
       APP.metadata.forEach(row => {
     
         // using strava_timestamp here is arbtirary; all of the timestamp fields should be the same
-        row.date = d3.isoParse(metadata.strava_timestamp);
+        row.date = d3.isoParse(row.strava_timestamp);
 
         row.total_ascent *= 3.2808; // meters to feet
         row.total_distance *= 0.000621371; // meters to miles

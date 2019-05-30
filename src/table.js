@@ -50,7 +50,7 @@ function makeTable ({container}) {
     const tbody = table.append("tbody");
 
     // hard-coded page size (rows per page)
-    const pageSize = 20;
+    const pageSize = 30;
 
     // the array of activity metadata
     let data = [];
